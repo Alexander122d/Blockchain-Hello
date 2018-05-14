@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="text/javascript" src="js/web3.min.js"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Blockchain hello</h1>
+    <input type="text" required class="form-control" id="name">
+    <input type="text" required class="form-control" id="message">
+    <button id="button">Отправить сообщение</button>
+    <p id="history"></p>
+  </div>
+
+  <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
+  <script type="text/javascript" src="js/bootstrap.min.js"></script>
+
+  <script type="text/javascript">
+
+    if(typeof web3 !== 'undefined') {
+      web3 = new Web3(web3.currentProvider);
+    }
+
+    var blockchain_hello = new web3.eth.Contract([{"constant":false,"inputs":[{"name":"_name","type":"bytes32"},{"name":"_message","type":"bytes32"}],"name":"sendMessage","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"anonymous":false,"inputs":[{"indexed":true,"name":"sender","type":"address"},{"indexed":false,"name":"name","type":"bytes32"},{"indexed":false,"name":"shortMessage","type":"bytes32"}],"name":"MessageSended","type":"event"}], "0x0103913c7edfdc67511c7a32b81e10fa2665cbee");
+
+    var accounts = '';
+
+    web3.eth.getAccounts().then(result => { accounts = result });
+
+    $(document).ready(function() {
+
+      blockchain_hello.events.MessageSended({fromBlock: 0, toBlock: 'latest'}, function(error, result) {
+        if(!error)
+          $.each(result, function(index,value) {
+            //console.log(web3.utils.hexToUtf8(value.raw.data));
+            $("#history").append(web3.utils.hexToUtf8(value.raw.data) + "<br>");
+          });
+        else
+          console.log(error);
+      });
+
+      blockchain_hello.getPastEvents("MessageSended", {fromBlock: 0, toBlock: 'latest'}, function(error, result) {
+        if(!error)
+          $.each(result, function(index,value) {
+            //console.log(web3.utils.hexToUtf8(value.raw.data));
+            $("#history").append(web3.utils.hexToUtf8(value.raw.data) + "<br>");
+          });
+        else
+          console.log(error);
+      });
+
+    });
+
+
+    $("#button").click(function() {
+
+      var name = web3.utils.utf8ToHex($("#name").val());
+      var message = web3.utils.utf8ToHex($("#message").val());
+
+      blockchain_hello.methods.sendMessage(name, message).send({from: accounts[0]}).then(function(receipt) {
+        console.log(receipt);
+      });
+
+      /*
+      var address = $("#address").val();
+      CoursetroContract.getPastEvents("Transfer",{ filter: { to: address }, fromBlock: 0, toBlock: 'latest'},  function(error, result) {
+        if(!error)
+          $.each(result, function(index,value) {
+            console.log(value);
+            var tokenCount = value.returnValues.value;
+            web3.eth.getTransaction(value.transactionHash, function(error, result) {
+              if(!error) {
+                console.log(result);
+                var transHash = result.hash;
+                var etherCost = result.value / 1000000000000000000;
+                // время блока
+                web3.eth.getBlock(result.blockNumber, function(error, result) {
+                  var time = new Date(result.timestamp * 1000);
+                  $("#history").append(transHash + " " + time + " " + tokenCount + " " + etherCost + " Ether<br>");
+                });
+              }
+              else
+                console.log(error);
+            });
+          });
+        else
+            console.error(error);
+      }).then(function(events) {
+        //console.log(events);
+      });
+      */
+    });
+
+  </script>
+
+</body>
+
+
+</html>
